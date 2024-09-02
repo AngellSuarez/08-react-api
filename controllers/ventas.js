@@ -1,5 +1,5 @@
 const Ventas = require("../models/ventas")
-const Producto = require("#")
+const Producto = require("../models/productos")
 const mongoose = require("mongoose")
 
 // Función para obtener todas las ventas con paginación
@@ -51,70 +51,59 @@ const getVentaPorId = async (req, res) => {
 
 // Función para crear una nueva venta
 const postVenta = async (req, res) => {
-  // Iniciar una sesión de transacción
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
   try {
     // Crear una nueva venta con los datos recibidos
-    const venta = new Ventas(req.body)
-    const ventaGuardada = await venta.save({ session })
+    const venta = new Ventas(req.body);
+
+    // Guardar la venta en la base de datos
+    await venta.save();
 
     // Actualizar el stock de los productos vendidos
-    const actualizacionesStock = ventaGuardada.productos_servicios.map(item => 
+    const actualizacionesStock = venta.productos_servicios.map(item =>
       Producto.findByIdAndUpdate(
         item.producto_servicio_id,
         { $inc: { stock: -item.cantidad } },
-        { session, new: true }
+        { new: true }
       )
     );
     await Promise.all(actualizacionesStock);
 
-    // Confirmar la transacción y enviar la respuesta
-    await session.commitTransaction();
-    res.status(201).json(ventaGuardada);
+    // Enviar la respuesta
+    res.status(201).json(venta);
   } catch (error) {
-    // Si hay un error, deshacer la transacción
-    await session.abortTransaction();
-    console.error("Error creando la venta: ", error)
-    res.status(500).json({ message: "Error al crear la venta" })
-  } finally {
-    // Cerrar la sesión de transacción
-    session.endSession()
+    // Manejar el error
+    console.error("Error creating the sale: ", error);
+    res.status(500).json({ message: "Error al crear la venta" });
   }
-}
+};
 
 // Estados válidos para una venta
-const VALID_ESTADOS = ["pendiente", "completado", "cancelado"]
 
-// Función para modificar el estado de una venta
+const VALID_ESTADOS = ["pendiente", "completado", "cancelado"];
+
 const modificarEstadoVenta = async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
 
   // Verificar si el estado es válido
   if (!VALID_ESTADOS.includes(estado)) {
-    return res.status(400).json({ message: "Estado invalido" })
+    return res.status(400).json({ message: "Estado inválido" });
   }
-
-  // Iniciar una sesión de transacción
-  const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
     // Buscar la venta por ID
-    const venta = await Ventas.findById({ _id: id }).session(session)
+    const venta = await Ventas.findById(id);
     if (!venta) {
-      res.status(404).json({ message: "Venta no encontrada" })
+      return res.status(404).json({ message: "Venta no encontrada" });
     }
 
     // Verificar si la venta ya está completada o cancelada
     if (["completado", "cancelado"].includes(venta.estado)) {
-      res.status(400).json({ message: "No se puede modificar una venta completada o cancelada" })
+      return res.status(400).json({ message: "No se puede modificar una venta completada o cancelada" });
     }
 
     // Actualizar el estado de la venta
-    venta.estado = estado
+    venta.estado = estado;
 
     // Si se cancela la venta, restaurar el stock de los productos
     if (estado === 'cancelado') {
@@ -122,21 +111,24 @@ const modificarEstadoVenta = async (req, res) => {
         Producto.findByIdAndUpdate(
           item.producto_servicio_id,
           { $inc: { stock: +item.cantidad } },
-          { session }
+          { new: true }
         )
-      ))
+      ));
     }
 
-    // Guardar los cambios y confirmar la transacción
-    await venta.save({ session });
-    await session.commitTransaction()
-    res.status(200).json(venta)
+    // Guardar los cambios
+    await venta.save();
+    res.status(200).json(venta);
   } catch (error) {
-    // Si hay un error, deshacer la transacción
-    await session.abortTransaction();
-    res.status(error.message.includes("no encontrada") ? 404 : 400).json({ message: error.message })
-  } finally {
-    // Cerrar la sesión de transacción
-    session.endSession()
+    // Manejar errores
+    console.error("Error modifying the sale: ", error);
+    res.status(error.message.includes("no encontrada") ? 404 : 400).json({ message: error.message });
   }
+};
+
+module.exports = {
+  getVentas,
+  getVentaPorId,
+  postVenta,
+  modificarEstadoVenta
 }

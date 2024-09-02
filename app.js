@@ -1,36 +1,42 @@
-//requires base
-const express = require("express")
-const mongoose = require("mongoose")
+const express = require("express");
+const mongoose = require("mongoose");
 require("dotenv").config();
-const cors = require("cors")
-const morgan = require("morgan")
+const cors = require("cors");
+const morgan = require("morgan");
 
+// Initialize the app
+const app = express();
+const port = process.env.PORT || 3000;
 
-const app = express()
-const port = process.env.PORT || 3000
+// Import routes
+const VentasRouter = require("./routes/ventas");
 
-//insertar el require de las rutas
-
-
-//const VentaRutas = require("./routes/ventas")
-
-//middlware
-app.use(cors())
+// Middleware setup
+app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"))
+app.use(morgan("dev"));
 
+// Basic route for health check or welcome
+app.get("/", (req, res) => {
+  res.send("Welcome to the API");
+});
 
-//importe de rutas
-app.use("/",(req,res)=>{
-    res.send("que onda negro soy una api")
-})
-//get de rutas
+// API routes
+app.use("/api", VentasRouter);
 
-//mongo
+// MongoDB connection
 mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(()=> console.log("conected to the db"))
-    .catch((error) => console.error(error))
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to the DB"))
+  .catch((error) => console.error("Error connecting to the DB:", error));
 
-//nombre del puerto
-app.listen(port,()=>console.log("server in the port",port))
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Internal Server Error" });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

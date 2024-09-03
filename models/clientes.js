@@ -33,6 +33,6 @@ const ClienteSchema = new mongoose.Schema({
     ventas:[]
 })
 
-const Clientes = mongoose.model("Clientes",Clientes)
+const Clientes = mongoose.model("Clientes",ClienteSchema)
 
 module.exports = Clientes

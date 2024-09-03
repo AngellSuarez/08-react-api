@@ -10,6 +10,8 @@ const port = process.env.PORT || 3000;
 
 // Import routes
 const VentasRouter = require("./routes/ventas");
+const ServicioRouter = require("./routes/servicios");
+const ProveedorRouter = require("./routes/proveedores")
 
 // Middleware setup
 app.use(cors());
@@ -23,6 +25,8 @@ app.get("/", (req, res) => {
 
 // API routes
 app.use("/api", VentasRouter);
+app.use("/api", ServicioRouter);
+app.use("/api", ProveedorRouter)
 
 // MongoDB connection
 mongoose

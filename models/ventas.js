@@ -8,7 +8,6 @@ const VentasSchema = new mongoose.Schema({
    fecha:{
     type:Date,
     default:Date.now,
-    required:true,
    },
    total:{
     type:Number,

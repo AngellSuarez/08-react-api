@@ -12,6 +12,8 @@ const port = process.env.PORT || 3000;
 const VentasRouter = require("./routes/ventas");
 const ServicioRouter = require("./routes/servicios");
 const ProveedorRouter = require("./routes/proveedores")
+const ClientesRouter = require("./routes/clientes")
+const UsuariosRouter = require("./routes/usuarios")
 
 // Middleware setup
 app.use(cors());
@@ -26,7 +28,9 @@ app.get("/", (req, res) => {
 // API routes
 app.use("/api", VentasRouter);
 app.use("/api", ServicioRouter);
-app.use("/api", ProveedorRouter)
+app.use("/api", ProveedorRouter);
+app.use("/api", ClientesRouter);
+app.use("/api", UsuariosRouter)
 
 // MongoDB connection
 mongoose

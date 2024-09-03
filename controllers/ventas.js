@@ -1,6 +1,7 @@
 const Ventas = require("../models/ventas")
 const Producto = require("../models/productos")
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const Clientes = require("../models/clientes");
 
 // Función para obtener todas las ventas con paginación
 const getVentas = async (req, res) => {
@@ -80,6 +81,21 @@ const postVenta = async (req, res) => {
       )
     );
     await Promise.all(actualizacionesStock);
+
+    const cliente = await Clientes.findById(venta.cliente_id);
+    if(!cliente){
+      return res.status(400).json({message:"Cliente no encontrado"})
+    };
+
+    const infoVenta = {
+      venta_id: venta._id,
+      fecha: venta.fecha,
+      total: venta.total,
+      productos_servicios: venta.productos_servicios
+    };
+
+    cliente.ventas.push(infoVenta)
+    await cliente.save()
 
     // Enviar la respuesta
     res.status(201).json(venta);

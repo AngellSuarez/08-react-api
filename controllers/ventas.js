@@ -5,16 +5,29 @@ const mongoose = require("mongoose")
 // Función para obtener todas las ventas con paginación
 const getVentas = async (req, res) => {
   try {
-    // Configuración de la paginación
+    const { estado, cliente } = req.query;  // Obtener el estado y el cliente de los parámetros de consulta
     const pagina = parseInt(req.query.pagina) || 1;
     const limite = parseInt(req.query.limite) || 10;
     const saltar = (pagina - 1) * limite;
 
-    // Obtener el total de ventas y las ventas de la página actual
-    const totalVentas = await Ventas.countDocuments();
-    const venta = await Ventas.find()
+    // Construir el filtro basado en los parámetros recibidos
+    let filtro = {};
+
+    if (estado && estado !== 'todos') {
+      filtro.estado = estado;
+    }
+
+    if (cliente && cliente !== '') {
+      filtro.cliente_id = cliente;  // Suponiendo que cliente_id es el campo en tu modelo que almacena el ID del cliente
+    }
+
+    // Contar el número total de documentos que coinciden con el filtro
+    const totalVentas = await Ventas.countDocuments(filtro);
+    
+    // Buscar las ventas que coinciden con el filtro y aplicar la paginación
+    const venta = await Ventas.find(filtro)
       .skip(saltar)
-      .limit(limite)
+      .limit(limite);
 
     // Enviar respuesta con las ventas y la información de paginación
     res.status(200).json({
@@ -24,10 +37,10 @@ const getVentas = async (req, res) => {
       totalVentas
     });
   } catch (error) {
-    console.error("error al obtener ventas: ", error)
-    res.status(500).json({ message: error.message })
+    console.error("Error al obtener ventas: ", error);
+    res.status(500).json({ message: error.message });
   }
-}
+};
 
 // Función para obtener una venta específica por su ID
 const getVentaPorId = async (req, res) => {

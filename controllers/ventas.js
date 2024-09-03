@@ -18,7 +18,7 @@ const getVentas = async (req, res) => {
     }
 
     if (cliente && cliente !== '') {
-      filtro.cliente_id = cliente;  // Suponiendo que cliente_id es el campo en tu modelo que almacena el ID del cliente
+      filtro.cliente_id = cliente;  
     }
 
     // Contar el número total de documentos que coinciden con el filtro

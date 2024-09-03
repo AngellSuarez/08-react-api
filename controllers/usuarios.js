@@ -14,16 +14,18 @@ const registerUsuario = async(req,res) =>{
     try{
         await usuarios.save()
         res.status(200).json({message:"Usuario creado"})
+        console.log(usuarios)
     }catch(error){
-        res.status(500).json({message:error.message})
+        res.status(500).json({message:error.message,error})
+        console.log(error)
     }
 }
 
 const loginUsuario = async(req,res)=>{
-    const {email,password} = req.body;
+    const {correo,password} = req.body;
 
     try{
-        const usuario = await Usuarios.findOne({email:email})
+        const usuario = await Usuarios.findOne({correo:correo})
 
         if(!usuario){
             return res.status(404).json({message:"Correo no encontrado registate gay"})
@@ -41,7 +43,7 @@ const loginUsuario = async(req,res)=>{
 
 const getAllUsuarios = async(req,res)=>{
     try{
-        const usuario = Usuarios.find()
+        const usuario = await Usuarios.find()
         res.status(200).json(usuario)
     }catch(error){
         res.status(500).json({message:error.message})

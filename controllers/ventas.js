@@ -108,7 +108,7 @@ const postVenta = async (req, res) => {
 
 // Estados válidos para una venta
 
-const VALID_ESTADOS = ["pendiente", "completado", "cancelado"];
+const VALID_ESTADOS = ["Pendiente", "Completado", "Cancelado"];
 
 const modificarEstadoVenta = async (req, res) => {
   const { id } = req.params;
@@ -127,19 +127,20 @@ const modificarEstadoVenta = async (req, res) => {
     }
 
     // Verificar si la venta ya está completada o cancelada
-    if (["completado", "cancelado"].includes(venta.estado)) {
-      return res.status(400).json({ message: "No se puede modificar una venta completada o cancelada" });
+    if (venta.estado === "Completado" && estado === "Cancelado") {
+      return res.status(400).json({ message: "No se puede modificar una venta completada a cancelada" });
     }
 
     // Actualizar el estado de la venta
     venta.estado = estado;
 
     // Si se cancela la venta, restaurar el stock de los productos
-    if (estado === 'cancelado') {
+    if (estado === 'Cancelado') {
+      // Usar transacciones si es necesario
       await Promise.all(venta.productos_servicios.map(item =>
         Producto.findByIdAndUpdate(
           item.producto_servicio_id,
-          { $inc: { stock: +item.cantidad } },
+          { $inc: { stock: item.cantidad } },
           { new: true }
         )
       ));
@@ -150,10 +151,11 @@ const modificarEstadoVenta = async (req, res) => {
     res.status(200).json(venta);
   } catch (error) {
     // Manejar errores
-    console.error("Error modifying the sale: ", error);
-    res.status(error.message.includes("no encontrada") ? 404 : 400).json({ message: error.message });
+    console.error("Error modificando la venta: ", error);
+    res.status(500).json({ message: "Error al modificar la venta" });
   }
 };
+
 
 module.exports = {
   getVentas,

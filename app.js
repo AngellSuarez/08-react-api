@@ -14,6 +14,7 @@ const ServicioRouter = require("./routes/servicios");
 const ProveedorRouter = require("./routes/proveedores")
 const ClientesRouter = require("./routes/clientes")
 const UsuariosRouter = require("./routes/usuarios")
+const ProductosRouter = require("./routes/productos")
 
 // Middleware setup
 app.use(cors());
@@ -30,7 +31,8 @@ app.use("/api", VentasRouter);
 app.use("/api", ServicioRouter);
 app.use("/api", ProveedorRouter);
 app.use("/api", ClientesRouter);
-app.use("/api", UsuariosRouter)
+app.use("/api", UsuariosRouter);
+app.use("/api", ProductosRouter)
 
 // MongoDB connection
 mongoose
